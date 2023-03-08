@@ -9,4 +9,6 @@ public class KafkaTopicConstant {
     public static final String GROUP_STOCK = "stock";
 
     public static final String STORED_ORDER = "stored-orders";
+    public static final String STORED_CUSTOMER_ORDER = "stored-customer-orders";
+    public static final String STORED_PAYMENT_ORDER = "stored-payment-orders";
 }

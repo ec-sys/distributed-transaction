@@ -6,15 +6,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.kafka.annotation.EnableKafka;
 import pl.piomin.stock.domain.Product;
 import pl.piomin.stock.repository.ProductRepository;
 
-import javax.annotation.PostConstruct;
 import java.util.Random;
 
 @SpringBootApplication
-@EnableKafka
 public class StockApp {
 
     private static final Logger LOG = LoggerFactory.getLogger(StockApp.class);

@@ -7,14 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.annotation.EnableKafkaStreams;
 import pl.piomin.payment.domain.Customer;
 import pl.piomin.payment.repository.CustomerRepository;
 
-import javax.annotation.PostConstruct;
 import java.util.Random;
 
 @SpringBootApplication
 @EnableKafka
+@EnableKafkaStreams
 public class PaymentApp {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApp.class);
