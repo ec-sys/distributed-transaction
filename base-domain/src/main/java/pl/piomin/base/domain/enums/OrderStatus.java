@@ -1,11 +1,7 @@
 package pl.piomin.base.domain.enums;
 
 public enum OrderStatus {
-    NEW,
-    ACCEPT,
-    CONFIRMED,
-    REJECT,
-    REJECTED,
-    ROLLBACK,
-    PAYMENT
+    ORDER_CREATED,
+    ORDER_CANCELLED,
+    ORDER_COMPLETED
 }
