@@ -10,4 +10,5 @@ public class OrderRequestDTO {
     private UUID orderId;
     private Long customerId;
     List<OrderItemDTO> items;
+    private int amount;
 }
