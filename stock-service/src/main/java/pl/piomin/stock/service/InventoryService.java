@@ -10,8 +10,9 @@ import pl.piomin.base.domain.enums.InventoryStatus;
 import pl.piomin.stock.domain.Product;
 import pl.piomin.stock.repository.ProductRepository;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,53 +30,55 @@ public class InventoryService {
                 .collect(Collectors.toMap(OrderItemDTO::getProductId, Function.identity()));
 
         Iterable<Product> products = productRepository.findAllById(itemDTOMap.keySet());
-        int productCount = 0;
+        Set<Long> dbProductIds = new HashSet<>();
         boolean isValid = true;
         for (Product item : products) {
             OrderItemDTO itemDTO = itemDTOMap.get(item.getId());
-            if(itemDTO.getProductPrize() != item.getProductPrize()) {
+            // check product is out of date
+            if (itemDTO.getProductPrize() != item.getProductPrize()) {
                 log.error("PRODUCT PRIZE IS NOT MATCHING, ID {}, NAME {}", item.getId(), item.getName());
                 isValid = false;
             }
-            if(itemDTO.getProductCount() > item.getAvailableItems()) {
+            // check product quantity
+            if (itemDTO.getProductCount() > item.getAvailableItems()) {
                 log.error("PRODUCT UNAVAILABLE, STOCK: ID {} - NAME {}, REQUEST: ID {}",
                         item.getId(), item.getName(), itemDTO.getProductId());
                 isValid = false;
             }
-            productCount++;
+            dbProductIds.add(item.getId());
+            item.setAvailableItems(item.getAvailableItems() - itemDTO.getProductCount());
+            item.setReservedItems(item.getReservedItems() + itemDTO.getProductCount());
         }
-        if(itemDTOMap.size() != productCount) {
-            log.error("PRODUCT PRIZE IS NOT MATCHING, ID {}, NAME {}");
+
+        // check have not exist in database
+        Set<Long> remainIds = itemDTOMap.keySet();
+        remainIds.removeAll(dbProductIds);
+        if (remainIds.size() > 0) {
+            log.error("PRODUCT PRIZE IS NOT MATCHING, ID {}, NAME {}", remainIds);
             isValid = false;
         }
-        if(isValid) {
+
+        // return
+        if (isValid) {
+            productRepository.saveAll(products);
             responseDTO.setStatus(InventoryStatus.AVAILABLE);
         } else {
             responseDTO.setStatus(InventoryStatus.UNAVAILABLE);
         }
-        products.forEach(item -> {
-            OrderItemDTO itemDTO = itemDTOMap.get(item.getId());
-            if(itemDTO.getProductPrize() != item.getProductPrize()) {
-                log.error("PRODUCT PRIZE IS NOT MATCHING, ID {}, NAME {}", item.getId(), item.getName());
-                isValid = true;
-            }
-        });
-
-        int quantity = this.productInventoryMap.getOrDefault(requestDTO.getProductId(), 0);
-        InventoryResponseDTO responseDTO = new InventoryResponseDTO();
-        responseDTO.setOrderId(requestDTO.getOrderId());
-        responseDTO.setUserId(requestDTO.getUserId());
-        responseDTO.setProductId(requestDTO.getProductId());
-        responseDTO.setStatus(InventoryStatus.UNAVAILABLE);
-        if(quantity > 0){
-            responseDTO.setStatus(InventoryStatus.AVAILABLE);
-            this.productInventoryMap.put(requestDTO.getProductId(), quantity - 1);
-        }
         return responseDTO;
     }
 
-    public void addInventory(final InventoryRequestDTO requestDTO){
-        this.productInventoryMap
-                .computeIfPresent(requestDTO.getProductId(), (k, v) -> v + 1);
+    public void addInventory(final InventoryRequestDTO requestDTO) {
+        Map<Long, OrderItemDTO> itemDTOMap = requestDTO.getItems()
+                .stream()
+                .collect(Collectors.toMap(OrderItemDTO::getProductId, Function.identity()));
+
+        Iterable<Product> products = productRepository.findAllById(itemDTOMap.keySet());
+        for (Product item : products) {
+            OrderItemDTO itemDTO = itemDTOMap.get(item.getId());
+            item.setAvailableItems(item.getAvailableItems() + itemDTO.getProductCount());
+            item.setReservedItems(item.getReservedItems() - itemDTO.getProductCount());
+        }
+        productRepository.saveAll(products);
     }
 }

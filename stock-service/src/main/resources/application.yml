@@ -1,4 +1,6 @@
+server.port: 8083
 spring.application.name: stock
+
 spring.kafka:
   bootstrap-servers: localhost:9092
   consumer:
@@ -19,6 +21,6 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
 
 logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){faint}%n"

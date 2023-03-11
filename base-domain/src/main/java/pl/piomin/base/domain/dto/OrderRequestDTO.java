@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 public class OrderRequestDTO {
-    private UUID orderId;
+    private String orderId;
     private Long customerId;
     List<OrderItemDTO> items;
     private int amount;

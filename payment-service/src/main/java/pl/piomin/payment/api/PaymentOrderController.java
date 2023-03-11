@@ -17,12 +17,12 @@ public class PaymentOrderController {
     private PaymentService service;
 
     @PostMapping("/debit")
-    public PaymentResponseDTO debit(@RequestBody PaymentRequestDTO requestDTO){
+    public PaymentResponseDTO debit(@RequestBody PaymentRequestDTO requestDTO) {
         return this.service.debit(requestDTO);
     }
 
     @PostMapping("/credit")
-    public void credit(@RequestBody PaymentRequestDTO requestDTO){
+    public void credit(@RequestBody PaymentRequestDTO requestDTO) {
         this.service.credit(requestDTO);
     }
 }

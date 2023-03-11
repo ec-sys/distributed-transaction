@@ -17,6 +17,7 @@
     </properties>
 
     <modules>
+        <module>order-orchestrator</module>
         <module>order-service</module>
         <module>payment-service</module>
         <module>base-domain</module>

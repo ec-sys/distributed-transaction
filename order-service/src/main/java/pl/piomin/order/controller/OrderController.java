@@ -5,14 +5,18 @@ import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import pl.piomin.base.domain.Order;
 import pl.piomin.base.domain.constants.KafkaTopicConstant;
+import pl.piomin.base.domain.dto.OrderRequestDTO;
+import pl.piomin.base.domain.dto.OrderResponseDTO;
 import pl.piomin.base.domain.enums.OrderSource;
 import pl.piomin.base.domain.enums.OrderStatus;
 import pl.piomin.order.service.OrderGeneratorService;
+import pl.piomin.order.service.OrderManageService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,55 +27,21 @@ import java.util.concurrent.atomic.AtomicLong;
 public class OrderController {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrderController.class);
-    private AtomicLong id = new AtomicLong();
-    private KafkaTemplate<Long, Order> template;
-    private StreamsBuilderFactoryBean kafkaStreamsFactory;
-    private OrderGeneratorService orderGeneratorService;
 
-    public OrderController(KafkaTemplate<Long, Order> template,
-                           StreamsBuilderFactoryBean kafkaStreamsFactory,
-                           OrderGeneratorService orderGeneratorService) {
-        this.template = template;
-        this.kafkaStreamsFactory = kafkaStreamsFactory;
-        this.orderGeneratorService = orderGeneratorService;
-    }
+    @Autowired
+    OrderManageService orderManageService;
+
+    @Autowired
+    OrderGeneratorService orderGeneratorService;
 
     @PostMapping
-    public Order create(@RequestBody Order order) {
-        order.setId(id.incrementAndGet());
-        order.setSource(OrderSource.ORDER);
-        order.setStatus(OrderStatus.NEW);
-        template.send(KafkaTopicConstant.TOPIC_ORDER, order.getId(), order);
-        LOG.info("Sent: {}", order);
-        return order;
+    public OrderResponseDTO create(@RequestBody OrderRequestDTO requestDTO) {
+        return orderManageService.createOrder(requestDTO);
     }
 
     @PostMapping("/generate")
     public boolean create() {
         orderGeneratorService.generate();
         return true;
-    }
-
-    @GetMapping
-    public List<Order> all() {
-        List<Order> orders = new ArrayList<>();
-        ReadOnlyKeyValueStore<Long, Order> store = kafkaStreamsFactory
-                .getKafkaStreams()
-                .store(StoreQueryParameters.fromNameAndType(
-                        KafkaTopicConstant.STORED_ORDER,
-                        QueryableStoreTypes.keyValueStore()));
-        KeyValueIterator<Long, Order> it = store.all();
-        it.forEachRemaining(kv -> orders.add(kv.value));
-        return orders;
-    }
-
-    @GetMapping("/{id}")
-    public Order getById(@PathVariable Long id) {
-        ReadOnlyKeyValueStore<Long, Order> store = kafkaStreamsFactory
-                .getKafkaStreams()
-                .store(StoreQueryParameters.fromNameAndType(
-                        KafkaTopicConstant.STORED_ORDER,
-                        QueryableStoreTypes.keyValueStore()));
-        return store.get(id);
     }
 }

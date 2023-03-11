@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Data
 public class PaymentRequestDTO {
-    private UUID orderId;
+    private String orderId;
     private Long customerId;
     private int amount;
 }

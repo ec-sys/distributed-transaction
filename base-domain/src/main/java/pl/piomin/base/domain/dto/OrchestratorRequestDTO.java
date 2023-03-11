@@ -2,13 +2,13 @@ package pl.piomin.base.domain.dto;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
 public class OrchestratorRequestDTO {
-
-    private Integer userId;
-    private Integer productId;
-    private UUID orderId;
-    private Double amount;
+    private String orderId;
+    private Long customerId;
+    List<OrderItemDTO> items;
+    private int amount;
 }

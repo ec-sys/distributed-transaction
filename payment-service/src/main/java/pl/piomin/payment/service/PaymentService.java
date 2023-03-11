@@ -27,7 +27,7 @@ public class PaymentService {
         log.info("Found: {}", customer);
         int balance = customer.getAmountAvailable();
         int amount = requestDTO.getAmount();
-        if(balance >= amount) {
+        if (balance >= amount) {
             // accepted, save to db
             customer.setAmountAvailable(balance - amount);
             customer.setAmountReserved(customer.getAmountReserved() + amount);
@@ -41,7 +41,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public void credit(final PaymentRequestDTO requestDTO){
+    public void credit(final PaymentRequestDTO requestDTO) {
         Customer customer = customerRepository.findById(requestDTO.getCustomerId()).orElseThrow();
         log.info("Found: {}", customer);
         // reverted, save to db
