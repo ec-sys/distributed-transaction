@@ -26,7 +26,7 @@ public class StartupApplicationListener implements ApplicationRunner {
     private void generateData() {
         Random r = new Random();
         Faker faker = new Faker();
-        for (int j = 0; j < 1; j++) {
+        for (int j = 0; j < 200; j++) {
             List<Product> products = new ArrayList<>();
             for (int i = 0; i < 10000; i++) {
                 int count = r.nextInt(1000);

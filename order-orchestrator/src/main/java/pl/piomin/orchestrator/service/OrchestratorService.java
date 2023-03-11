@@ -28,7 +28,7 @@ public class OrchestratorService {
     @Qualifier("inventory")
     private WebClient inventoryClient;
 
-    public Mono<OrchestratorResponseDTO> orderProduct(final OrchestratorRequestDTO requestDTO) {
+    public Mono<OrchestratorResponseDTO> processOrder(final OrchestratorRequestDTO requestDTO) {
         Workflow orderWorkflow = this.getOrderWorkflow(requestDTO);
         return Flux.fromStream(() -> orderWorkflow.getSteps().stream())
                 .flatMap(WorkflowStep::process)
