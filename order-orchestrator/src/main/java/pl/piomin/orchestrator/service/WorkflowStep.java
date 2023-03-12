@@ -1,11 +1,9 @@
 package pl.piomin.orchestrator.service;
 
-import reactor.core.publisher.Mono;
-
 public interface WorkflowStep {
     WorkflowStepStatus getStatus();
 
-    Mono<Boolean> process();
+    boolean process();
 
-    Mono<Boolean> revert();
+    boolean revert();
 }

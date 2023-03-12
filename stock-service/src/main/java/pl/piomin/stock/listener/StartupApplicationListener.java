@@ -20,19 +20,20 @@ public class StartupApplicationListener implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        // generateData();
+//        generateData();
     }
 
     private void generateData() {
         Random r = new Random();
         Faker faker = new Faker();
-        for (int j = 0; j < 200; j++) {
+        for (int j = 0; j < 2; j++) {
             List<Product> products = new ArrayList<>();
             for (int i = 0; i < 10000; i++) {
                 int count = r.nextInt(1000);
                 int prize = r.nextInt(2000);
                 Product p = new Product();
                 p.setName(faker.commerce().productName());
+                p.setTotalItems(count);
                 p.setAvailableItems(count);
                 p.setReservedItems(0);
                 p.setProductPrize(prize);

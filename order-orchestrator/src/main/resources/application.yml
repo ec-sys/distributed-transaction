@@ -1,9 +1,15 @@
-spring.application.name: orders
+spring.application.name: order-orchestrator
+
 spring.kafka:
   bootstrap-servers: localhost:9092
   producer:
     key-serializer: org.apache.kafka.common.serialization.StringSerializer
     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  consumer:
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: "*"
   streams:
     properties:
       default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
@@ -17,5 +23,8 @@ logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(---){faint} %clr([%1
 
 service:
   endpoints:
-    inventory: http://localhost:8081
-    payment: http://localhost:8082
+    inventory: http://localhost:9081
+    payment: http://localhost:9082
+spring:
+  main:
+    web-application-type: none

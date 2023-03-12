@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 public class InventoryRequestDTO {
-    private UUID orderId;
+    private String orderId;
     private Long customerId;
     List<OrderItemDTO> items;
 }

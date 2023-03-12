@@ -42,11 +42,15 @@ public class PaymentService {
 
     @Transactional
     public void credit(final PaymentRequestDTO requestDTO) {
+        log.info("START REVERTING PAYMENT: {}", requestDTO);
+
         Customer customer = customerRepository.findById(requestDTO.getCustomerId()).orElseThrow();
         log.info("Found: {}", customer);
         // reverted, save to db
         customer.setAmountAvailable(customer.getAmountAvailable() + requestDTO.getAmount());
         customer.setAmountReserved(customer.getAmountReserved() - requestDTO.getAmount());
         customerRepository.save(customer);
+
+        log.info("END REVERTING PAYMENT: {}", requestDTO);
     }
 }

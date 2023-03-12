@@ -1,10 +1,12 @@
 package pl.piomin.orchestrator.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 import pl.piomin.base.domain.dto.InventoryRequestDTO;
 import pl.piomin.base.domain.dto.OrchestratorRequestDTO;
 import pl.piomin.base.domain.dto.OrchestratorResponseDTO;
@@ -12,42 +14,52 @@ import pl.piomin.base.domain.dto.PaymentRequestDTO;
 import pl.piomin.base.domain.enums.OrderStatus;
 import pl.piomin.orchestrator.service.steps.InventoryStep;
 import pl.piomin.orchestrator.service.steps.PaymentStep;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
-import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
+@Slf4j
 public class OrchestratorService {
 
     @Autowired
-    @Qualifier("payment")
-    private WebClient paymentClient;
-
+    RestTemplate restTemplate;
     @Autowired
-    @Qualifier("inventory")
-    private WebClient inventoryClient;
+    ObjectMapper objectMapper;
+    @Value("${service.endpoints.payment}")
+    private String endpointPayment;
+    @Value("${service.endpoints.inventory}")
+    private String endpointInventory;
 
-    public Mono<OrchestratorResponseDTO> processOrder(final OrchestratorRequestDTO requestDTO) {
+    public OrchestratorResponseDTO processOrder(final OrchestratorRequestDTO requestDTO) {
         Workflow orderWorkflow = this.getOrderWorkflow(requestDTO);
-        return Flux.fromStream(() -> orderWorkflow.getSteps().stream())
-                .flatMap(WorkflowStep::process)
-                .handle(((isDone, synchronousSink) -> {
-                    if (isDone)
-                        synchronousSink.next(true);
-                    else
-                        synchronousSink.error(new WorkflowException("create order failed!"));
-                }))
-                .then(Mono.fromCallable(() -> getResponseDTO(requestDTO, OrderStatus.ORDER_COMPLETED)))
-                .onErrorResume(ex -> this.revertOrder(orderWorkflow, requestDTO));
+        Map<Integer, WorkflowStep> stepMap = orderWorkflow.getSteps();
+        boolean isCompleted = true;
+        try {
+            stepMap.forEach((stepNumber, step) -> {
+                if (!step.process()) {
+                    throw new WorkflowException("CREATE ORDER FAILED AT STEP " + step.getClass().getName());
+                }
+            });
+        } catch (Exception ex) {
+            isCompleted = false;
+            ex.printStackTrace();
+            log.error(ex.getMessage());
+        }
+
+        if (!isCompleted) {
+            revertOrder(orderWorkflow, requestDTO);
+            return getResponseDTO(requestDTO, OrderStatus.ORDER_CANCELLED);
+        } else {
+            return getResponseDTO(requestDTO, OrderStatus.ORDER_COMPLETED);
+        }
     }
 
-    private Mono<OrchestratorResponseDTO> revertOrder(final Workflow workflow, final OrchestratorRequestDTO requestDTO) {
-        return Flux.fromStream(() -> workflow.getSteps().stream())
-                .filter(wf -> wf.getStatus().equals(WorkflowStepStatus.COMPLETE))
-                .flatMap(WorkflowStep::revert)
-                .retry(3)
-                .then(Mono.just(this.getResponseDTO(requestDTO, OrderStatus.ORDER_CANCELLED)));
+    private void revertOrder(final Workflow workflow, final OrchestratorRequestDTO requestDTO) {
+        Map<Integer, WorkflowStep> stepMap = workflow.getSteps();
+        stepMap.forEach((stepNumber, step) -> {
+            if (WorkflowStepStatus.COMPLETE.equals(step.getStatus())) step.revert();
+        });
     }
 
     private OrchestratorResponseDTO getResponseDTO(OrchestratorRequestDTO requestDTO, OrderStatus status) {
@@ -59,9 +71,14 @@ public class OrchestratorService {
     }
 
     private Workflow getOrderWorkflow(OrchestratorRequestDTO requestDTO) {
-        WorkflowStep paymentStep = new PaymentStep(this.paymentClient, this.getPaymentRequestDTO(requestDTO));
-        WorkflowStep inventoryStep = new InventoryStep(this.inventoryClient, this.getInventoryRequestDTO(requestDTO));
-        return new OrderWorkflow(List.of(paymentStep, inventoryStep));
+        WorkflowStep paymentStep = new PaymentStep(
+                restTemplate, objectMapper, endpointPayment, getPaymentRequestDTO(requestDTO));
+        WorkflowStep inventoryStep = new InventoryStep(
+                restTemplate, objectMapper, endpointInventory, getInventoryRequestDTO(requestDTO));
+        Map<Integer, WorkflowStep> stepMap = new TreeMap<>();
+        stepMap.put(1, inventoryStep);
+        stepMap.put(2, paymentStep);
+        return new OrderWorkflow(stepMap);
     }
 
     private PaymentRequestDTO getPaymentRequestDTO(OrchestratorRequestDTO requestDTO) {

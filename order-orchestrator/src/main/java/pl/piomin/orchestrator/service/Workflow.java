@@ -1,9 +1,9 @@
 package pl.piomin.orchestrator.service;
 
-import java.util.List;
+import java.util.Map;
 
 public interface Workflow {
 
-    List<WorkflowStep> getSteps();
+    Map<Integer, WorkflowStep> getSteps();
 
 }

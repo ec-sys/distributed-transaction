@@ -3,11 +3,9 @@ package pl.piomin.order.service;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import pl.piomin.base.domain.Order;
 import pl.piomin.base.domain.constants.KafkaTopicConstant;
 import pl.piomin.base.domain.dto.OrderItemDTO;
 import pl.piomin.base.domain.dto.OrderRequestDTO;
-import pl.piomin.base.domain.enums.OrderStatus;
 
 import java.util.ArrayList;
 import java.util.List;

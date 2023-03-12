@@ -36,7 +36,8 @@ public class InventoryService {
             OrderItemDTO itemDTO = itemDTOMap.get(item.getId());
             // check product is out of date
             if (itemDTO.getProductPrize() != item.getProductPrize()) {
-                log.error("PRODUCT PRIZE IS NOT MATCHING, ID {}, NAME {}", item.getId(), item.getName());
+                log.error("PRODUCT PRIZE IS NOT MATCHING, ID {}, NAME {}, DB PRIZE: {}, ORDER PRIZE: {}",
+                        item.getId(), item.getName(), item.getProductPrize(), itemDTO.getProductPrize());
                 isValid = false;
             }
             // check product quantity
@@ -69,10 +70,11 @@ public class InventoryService {
     }
 
     public void addInventory(final InventoryRequestDTO requestDTO) {
+        log.info("START REVERTING INVENTORY: {}", requestDTO);
+
         Map<Long, OrderItemDTO> itemDTOMap = requestDTO.getItems()
                 .stream()
                 .collect(Collectors.toMap(OrderItemDTO::getProductId, Function.identity()));
-
         Iterable<Product> products = productRepository.findAllById(itemDTOMap.keySet());
         for (Product item : products) {
             OrderItemDTO itemDTO = itemDTOMap.get(item.getId());
@@ -80,5 +82,7 @@ public class InventoryService {
             item.setReservedItems(item.getReservedItems() - itemDTO.getProductCount());
         }
         productRepository.saveAll(products);
+
+        log.info("END REVERTING INVENTORY: {}", requestDTO);
     }
 }

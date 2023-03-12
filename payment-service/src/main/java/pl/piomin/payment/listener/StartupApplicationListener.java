@@ -22,17 +22,18 @@ public class StartupApplicationListener implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        // generateData();
+//        generateData();
     }
 
     public void generateData() {
         Random r = new Random();
         Faker faker = new Faker();
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 2; j++) {
             List<Customer> customers = new ArrayList<>();
             for (int i = 0; i < 10000; i++) {
                 int count = r.nextInt(100000);
                 Customer c = new Customer(null, faker.name().fullName(), count, 0);
+                c.setAmountTotal(count);
                 customers.add(c);
             }
             repository.saveAll(customers);

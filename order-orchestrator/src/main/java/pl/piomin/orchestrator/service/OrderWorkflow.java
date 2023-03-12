@@ -1,18 +1,18 @@
 package pl.piomin.orchestrator.service;
 
-import java.util.List;
+import java.util.Map;
 
 public class OrderWorkflow implements Workflow {
 
-    private final List<WorkflowStep> steps;
+    private final Map<Integer, WorkflowStep> stepMap;
 
-    public OrderWorkflow(List<WorkflowStep> steps) {
-        this.steps = steps;
+    public OrderWorkflow(Map<Integer, WorkflowStep> stepMap) {
+        this.stepMap = stepMap;
     }
 
     @Override
-    public List<WorkflowStep> getSteps() {
-        return this.steps;
+    public Map<Integer, WorkflowStep> getSteps() {
+        return this.stepMap;
     }
 }
 

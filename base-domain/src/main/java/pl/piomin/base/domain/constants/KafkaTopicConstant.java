@@ -5,6 +5,7 @@ public class KafkaTopicConstant {
     public static final String TOPIC_PAYMENT = "payment-orders";
     public static final String TOPIC_STOCK = "stock-orders";
 
+    public static final String GROUP_ORDER = "order";
     public static final String GROUP_PAYMENT = "payment";
     public static final String GROUP_STOCK = "stock";
 

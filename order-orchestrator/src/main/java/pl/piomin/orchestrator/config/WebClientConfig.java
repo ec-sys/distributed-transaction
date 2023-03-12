@@ -1,27 +1,21 @@
 package pl.piomin.orchestrator.config;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
+@ComponentScan("pl.piomin.orchestrator.service.steps")
 public class WebClientConfig {
-
     @Bean
-    @Qualifier("payment")
-    public WebClient paymentClient(@Value("${service.endpoints.payment}") String endpoint) {
-        return WebClient.builder()
-                .baseUrl(endpoint)
-                .build();
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
     @Bean
-    @Qualifier("inventory")
-    public WebClient inventoryClient(@Value("${service.endpoints.inventory}") String endpoint) {
-        return WebClient.builder()
-                .baseUrl(endpoint)
-                .build();
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }
