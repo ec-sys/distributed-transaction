@@ -29,22 +29,24 @@ public class OrderGeneratorService {
 
     @Async
     public void generate() {
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1; i++) {
             int x = RAND.nextInt(20) + 1;
             OrderRequestDTO requestDTO = new OrderRequestDTO();
             requestDTO.setOrderId(UUID.randomUUID().toString());
-            requestDTO.setAmount(100 * x);
             requestDTO.setCustomerId(new Long(RAND.nextInt(100)));
 
             // order items
+            int totalAmount = 0;
             List<OrderItemDTO> itemDTOList = new ArrayList<>();
             for (int j = 0; j < x; j++) {
                 OrderItemDTO orderItem = new OrderItemDTO();
-                orderItem.setProductId(new Long(RAND.nextInt(100)));
+                orderItem.setProductId((long) RAND.nextInt(100));
                 orderItem.setProductPrize(100 * (RAND.nextInt(5) + 1));
                 orderItem.setProductCount(RAND.nextInt(5) + 1);
+                totalAmount = totalAmount + (orderItem.getProductPrize() * orderItem.getProductCount());
                 itemDTOList.add(orderItem);
             }
+            requestDTO.setAmount(totalAmount);
             requestDTO.setItems(itemDTOList);
             template.send(KafkaTopicConstant.TOPIC_ORDER, requestDTO.getOrderId(), requestDTO);
         }
